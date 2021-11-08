@@ -74,7 +74,9 @@ np.save('data', data)
 Kan slice hvert hundrede, data[]
 """
 
-data = np.load('data.npy')
+lambda_data = np.load('lambda_data.npy')
+sigma_noise = np.load('sigma_noise.npy')
+F_data = np.load('F_data.npy')
 
 c = const.c
 k = const.k_B
@@ -86,9 +88,6 @@ v_rel = 10000           # m/s
 d_lambda = v_rel / c * lambda0      # nm
 # print(d_lmda)
 # print(d_lmbda / 2)
-lambda_data = data[:,0].T
-sigma_noise = data[:,1].T
-F_data = data[:,2].T
 
 def sigma_calc(lambda0, m, T):
     return 2*lambda0 / c * np.sqrt(k*T / (4*m))
