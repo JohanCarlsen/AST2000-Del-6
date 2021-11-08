@@ -99,7 +99,7 @@ def F(lambda_data, lambda0, sigma, Fmin):
     f = 1 + (Fmin - 1)*np.exp(-0.5*((lambda_data - lambda0) / sigma)**2)
     return f
 
-index = np.logical_and(lambda_data >= lambda0 - d_lambda/2, lambda_data <= lambda0 + d_lambda/2)
+index = np.logical_and(lambda_data >= lambda0 - d_lambda - 3*sigma, lambda_data <= lambda0 + d_lambda + 3*sigma)
 plt.plot(lambda_data[index], F(lambda_data[index], lambda0, sigma, 0.5))
 plt.plot(lambda_data[index], F_data[index])
 plt.plot(lambda_data[index], (F_data[index] - F(lambda_data[index], lambda0, sigma, 0.5))**2)
@@ -107,27 +107,27 @@ plt.plot(lambda_data[index], (F_data[index] - F(lambda_data[index], lambda0, sig
 
 @njit
 def X_squared(F_data, sigma_noise, lambda0, index, lambda_data):
+    print('start')
     sigma_noise = sigma_noise.copy()[index]
     F_data = F_data.copy()[index]
     lambda_data = lambda_data.copy()[index]
-    lambda0 = np.linspace(lambda0 - d_lambda/2 - 5*sigma, lambda0 + d_lambda/2 + 5*sigma, len(F_data))
-    print(lambda0)
-    sigmaj = sigma_noise.copy()[index]
+    lambda0 = np.linspace(lambda0 - d_lambda - 3*sigma, lambda0 + d_lambda + 5*sigma, len(F_data))
+    sigmaj = sigma_noise.copy()
     Fmin = np.linspace(0, 0.7, len(F_data))
     X = np.zeros((len(F_data), len(F_data), len(F_data)))
     print(X.shape)
     for i in range(len(F_data)):
-        # F = fti
         for j in range(len(F_data)):
             for k in range(len(F_data)):
                 X[i,j,k] = np.sum(((F_data - F(lambda_data, lambda0[i], sigmaj[j], Fmin[k])) / sigma_noise)**2, axis=0)
                 # print(X[i,j,k])
     min = np.nanmin(X)
     where = np.where(X==min)
+    i, j, k = where
     # Xx = X[where]
     # print(where[0][50:100])
     # print(min, where, X[where])
-    return min, where, X, Fmin
+    return lambda0[i], sigmaj[j], Fmin[k], min
 
-min, where, Xx, Fmin = X_squared(F_data, sigma_noise, lambda0, index, lambda_data)
-print(min, where, Xx[where], Fmin[where[0]], sigma_noise[where[1]])
+lambda0, sigmaj, Fmin, min = X_squared(F_data, sigma_noise, lambda0, index, lambda_data)
+print(lambda0, sigmaj, Fmin, min)
