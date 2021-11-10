@@ -35,7 +35,7 @@ mission.verify_manual_orientation(pos, vel, angle)
 travel = mission.begin_interplanetary_travel()
 
 # Shortcut to make the landing sequence class start with a stable orbit
-shortcut.place_spacecraft_in_stable_orbit(2, 1000e3, 0, 6)
+shortcut.place_spacecraft_in_stable_orbit(2, 500e3, 0, 6)
 
 # Initializing landing sequence class instance
 landing = mission.begin_landing_sequence()
@@ -61,14 +61,31 @@ landing.fall_until_time(600)
 t, pos, vel = landing.orient()
 
 print('')
+print('FALLING')
 
 print('Distance to the planet center:', np.linalg.norm(pos), 'm')
 
 print('')
+print('FALLING')
 
 landing.fall_until_time(1200)
 t, pos, vel = landing.orient()
 
 print('')
+print('FALLING')
+
+print('Distance to the planet center:', np.linalg.norm(pos), 'm')
+
+print('')
+
+landing.look_in_direction_of_planet()
+landing.start_video()
+landing.fall(3600 * 2)
+landing.finish_video()
+
+t, pos, vel = landing.orient()
+
+print('')
+print('FALLING and recording video')
 
 print('Distance to the planet center:', np.linalg.norm(pos), 'm')
