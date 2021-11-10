@@ -89,3 +89,18 @@ print('')
 print('FALLING and recording video')
 
 print('Distance to the planet center:', np.linalg.norm(pos), 'm')
+
+'''
+Challenge D
+'''
+
+
+
+def landing_site_coordinates(phi_coord, time_elapsed):
+    '''Function to calculate new coordinates'''
+    
+    T = system.rotational_periods[6]
+    omega = 2 * np.pi / T
+    phi_new = phi_coord + omega * time_elapsed
+
+    return phi_new
