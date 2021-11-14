@@ -78,12 +78,11 @@ lambda_data = np.load('lambda_data.npy')
 sigma_noise = np.load('sigma_noise.npy')
 F_data = np.load('F_data.npy')
 
-
 c = const.c
 k = const.k_B
 lambda0 = 2870     # nm
-m = 2 * 7*(scs.m_p + scs.m_n) + 8*(scs.m_p + scs.m_n)
-T = 350             # K
+m = 8*(scs.m_p + scs.m_n) + 2*7*(scs.m_p + scs.m_n)
+T = 300             # K
 v_rel = 10000           # m/s
 
 d_lambda = v_rel / c * lambda0      # nm
@@ -104,11 +103,12 @@ def F(lambda_data, lambda0, sigma, Fmin):
 
 index_obs = np.logical_and(lambda_data >= lambda0 - d_lambda, lambda_data <= lambda0 + d_lambda)
 plt.plot(lambda_data[index_obs], F_data[index_obs])
+plt.plot(lambda_data[index_obs], F(lambda_data[index_obs], lambda0, sigma, 0.7))
 plt.show()
 
 
 n = 4
-lambda_obs = lambda0 + 0.052
+lambda_obs = 2870.09
 print(lambda_obs)
 print(lambda_obs - n*sigma)
 print(lambda_obs + n*sigma)
@@ -129,8 +129,8 @@ def X_squared(F_data, sigma_noise, lambda0, lambda_data, indexx):
     for i in range(len(F_datal)):
         for j in range(len(F_datal)):
             for k in range(len(F_datal)):
+                # print(F(lambda_datal, lambda0l[i], sigma_noisel[j], Fminl[k]))
                 X[i,j,k] = np.sum(((F_datal - F(lambda_datal, lambda0l[i], sigma_noisel[j], Fminl[k])) / sigma_noisel)**2)
-                # print(X[i,j,k])
     min = np.min(X)
     where = np.where(X==min)
     print(where)
@@ -154,7 +154,8 @@ print(lambda0, sigmaj, Fmin, min, (i,j,k))
 #     plt.pause(0.1)
 #     ax.cla(); ax2.cla()
 
-index = np.logical_and(lambda_data >= lambda0 - d_lambda - n*sigma, lambda_data <= lambda0 + d_lambda + n*sigma)
+index = np.logical_and(lambda_data >= lambda0 - d_lambda - 10*sigma, lambda_data <= lambda0 + d_lambda + 10*sigma)
 # plt.plot(lambda_data[index], F_data[index], color='tab:orange')
-plt.plot(lambda_data, F(lambda_data, lambda0, sigmaj, Fmin), linewidth=2, color='royalblue')
+plt.plot(lambda_data[index], F_data[index], color='tab:blue')
+plt.plot(lambda_data[index], F(lambda_data[index], lambda0, sigmaj, Fmin), linewidth=2, color='r')
 plt.show()

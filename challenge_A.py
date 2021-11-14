@@ -60,6 +60,8 @@ EGEN KODE
 landing.fall_until_time(600)
 t, pos, vel = landing.orient()
 
+
+
 print('')
 
 print('Distance to the planet center:', np.linalg.norm(pos), 'm')
