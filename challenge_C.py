@@ -32,7 +32,6 @@ T_star = 7985       # K
 mu = (1/3 * 16 * const.m_p + 1/3 * 14 * const.m_p + 1/3 * (2*const.m_p + 16*const.m_p)) / mh            # Komposisjon av atmosfære
 r_dist = 3.64 * const.AU            # Middel-avstand
 g = planet_mass * const.G / (planet_radius)**2  # antatt er konstant (husk å bytte til g for planeten vi befinner oss på)
-print(g)
 rho0 = system.atmospheric_densities[6]
 T0 = surface_T(R_star, T_star, r_dist)
 
