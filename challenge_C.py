@@ -93,58 +93,58 @@ def get_P(r):
     P = temp = np.concatenate((adiabatic_P, isoterm_P))
     return P
 
+if __name__ == '__main__':
+    # printer konstanter for å ha kontroll på størrelsene
+    print(f'Radius stjerne [m]: {R_star}')
+    print(f'Overflate temperatur planet [K]: {T0}')
+    print(f'A: {A}')
+    print(f'C: {C}')
+    print(f'C0: {C0}')
+    print(f'gamma: {gamma}')
+    print(f'K0: {K0}')
+    print(f'K1: {K1}')
+    print(f'rho0 [kg/m^3]: {rho0}')
+    print(f'g [m/s^2]: {g}')
+    print(f'mu: {mu}')
+    print(f'm_H [kg]: {mh}')
+    print(f'r_shift_adiabatic_isoterm [m]: {r_shift_adiabatic_isoterm}')
+    print(f'rho_shift_adiabatic_isoterm [m]: {rho_shift_adiabatic_isoterm}')
+    print(f'temp_shift_adiabatic_isoterm [K]: {temp_shift_adiabatic_isoterm}')
+    print(f'P_shift_adiabatic_isoterm [Pa]: {P_shift_adiabatic_isoterm}')
 
-# printer konstanter for å ha kontroll på størrelsene
-print(f'Radius stjerne [m]: {R_star}')
-print(f'Overflate temperatur planet [K]: {T0}')
-print(f'A: {A}')
-print(f'C: {C}')
-print(f'C0: {C0}')
-print(f'gamma: {gamma}')
-print(f'K0: {K0}')
-print(f'K1: {K1}')
-print(f'rho0 [kg/m^3]: {rho0}')
-print(f'g [m/s^2]: {g}')
-print(f'mu: {mu}')
-print(f'm_H [kg]: {mh}')
-print(f'r_shift_adiabatic_isoterm [m]: {r_shift_adiabatic_isoterm}')
-print(f'rho_shift_adiabatic_isoterm [m]: {rho_shift_adiabatic_isoterm}')
-print(f'temp_shift_adiabatic_isoterm [K]: {temp_shift_adiabatic_isoterm}')
-print(f'P_shift_adiabatic_isoterm [Pa]: {P_shift_adiabatic_isoterm}')
+    # Plotter alle sammen
+    r = np.linspace(0, 100000, 10000)
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True)
+    ax1.plot(r, get_rho(r), color='r', label=r'$\rho\;[kg/m^3]$')
+    ax2.plot(r, get_T(r), color='tab:orange', label='T [K]')
+    ax3.plot(r, get_P(r), color='tab:blue', label='P [Pa]')
 
-# Plotter alle sammen
-r = np.linspace(0, 100000, 10000)
-fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True)
-ax1.plot(r, get_rho(r), color='r', label=r'$\rho\;[kg/m^3]$')
-ax2.plot(r, get_T(r), color='tab:orange', label='T [K]')
-ax3.plot(r, get_P(r), color='tab:blue', label='P [Pa]')
+    ax3.set_xlabel('r [m]', fontsize=12, weight='bold')
+    ax1.set_ylabel(r'$\rho\;[kg/m^3]$', fontsize=12, weight='bold')
+    ax2.set_ylabel('T [K]', fontsize=12, weight='bold')
+    ax3.set_ylabel('P [Pa]', fontsize=12, weight='bold')
 
-ax3.set_xlabel('r [m]', fontsize=12, weight='bold')
-ax1.set_ylabel(r'$\rho\;[kg/m^3]$', fontsize=12, weight='bold')
-ax2.set_ylabel('T [K]', fontsize=12, weight='bold')
-ax3.set_ylabel('P [Pa]', fontsize=12, weight='bold')
+    fig.tight_layout()
+    ax1.legend(); ax2.legend(); ax3.legend()
+    plt.show()
 
-fig.tight_layout()
-ax1.legend(); ax2.legend(); ax3.legend()
-plt.show()
+    # Plot rho
+    plt.plot(r, get_rho(r), color='r', label=r'$\rho$ [kg/m^3]')
+    plt.xlabel('r [m]', fontsize=12, weight='bold')
+    plt.ylabel(r'$\rho\;[kg/m^3]$', fontsize=12, weight='bold')
+    plt.legend()
+    plt.show()
 
-# Plot rho
-plt.plot(r, get_rho(r), color='r', label=r'$\rho$ [kg/m^3]')
-plt.xlabel('r [m]', fontsize=12, weight='bold')
-plt.ylabel(r'$\rho\;[kg/m^3]$', fontsize=12, weight='bold')
-plt.legend()
-plt.show()
+    # Plot temp
+    plt.plot(r, get_T(r), color='tab:orange', label='T [K]')
+    plt.xlabel('r [m]', fontsize=12, weight='bold')
+    plt.ylabel('T [K]', fontsize=12, weight='bold')
+    plt.legend()
+    plt.show()
 
-# Plot temp
-plt.plot(r, get_T(r), color='tab:orange', label='T [K]')
-plt.xlabel('r [m]', fontsize=12, weight='bold')
-plt.ylabel('T [K]', fontsize=12, weight='bold')
-plt.legend()
-plt.show()
-
-# Plot P
-plt.plot(r, get_P(r), color='tab:blue', label='P [Pa]')
-plt.xlabel('r [m]', fontsize=12, weight='bold')
-plt.ylabel('P [Pa]', fontsize=12, weight='bold')
-plt.legend()
-plt.show()
+    # Plot P
+    plt.plot(r, get_P(r), color='tab:blue', label='P [Pa]')
+    plt.xlabel('r [m]', fontsize=12, weight='bold')
+    plt.ylabel('P [Pa]', fontsize=12, weight='bold')
+    plt.legend()
+    plt.show()
