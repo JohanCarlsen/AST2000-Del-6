@@ -7,6 +7,7 @@ import ast2000tools.constants as const
 from ast2000tools.shortcuts import SpaceMissionShortcuts
 import scipy.constants as scs
 from numba import njit
+import itertools
 
 """
 EGEN KODE: Anton Brekke
@@ -29,7 +30,42 @@ k = const.k_B
 mh = const.m_p
 g = 9.81  # antatt er konstant (husk å bytte til g for planeten vi befinner oss på)
 T_star = 7985       # K
-mu = (1/3 * 16 * const.m_p + 1/3 * 14 * const.m_p + 1/3 * (2*const.m_p + 16*const.m_p)) / mh            # Komposisjon av atmosfære
+
+# Masser til vanlige gasser i atmosfærer:
+m_o2 = 2 * 16*mh
+m_h2o = 2*mh + 16*mh
+m_co2 = 12*mh + 2 * 16*mh
+m_ch4 = 12*mh + 4*mh
+m_co = 12*mh + 16*mh
+m_n2o = 2 * 14*mh + 16*mh
+print('\n')
+print(f'm_o2: {m_o2}')
+print(f'm_h2o: {m_h2o}')
+print(f'm_co2: {m_co2}')
+print(f'm_ch4: {m_ch4}')
+print(f'm_co: {m_co}')
+print(f'm_n2o: {m_n2o}')
+print('\n')
+
+mass_array = np.array([m_o2, m_h2o, m_co2, m_ch4, m_co, m_n2o])
+def minimize_mu(mass_array):
+    combinations_mass = np.array([*itertools.combinations_with_replacement(mass_array, mass_array.size)])
+    N, M = combinations_mass.shape
+    mu_comb = np.zeros((N))
+    for i in range(len(mu_comb.flat)):
+        mu_comb.flat[i] = np.sum(combinations_mass.flat[i]) / (M*mh)
+    where_min = np.where(mu_comb==np.min(mu_comb))
+    print(f'Total combinations: {len(mu_comb)}')
+    # print(where_min)
+    # print(mu_comb[where_min])
+    # print(combinations_mass[where_min])
+    return combinations_mass[where_min], mu_comb[where_min]
+mass_comb, min_mu = minimize_mu(mass_array)
+
+n = 15
+print(f'Amount of combinations to choose: {len(min_mu)}\n')
+print(mass_comb[n])         # Kombinasjon av masse
+mu = min_mu[n]            # Komposisjon av atmosfære
 r_dist = 3.64 * const.AU            # Middel-avstand
 g = planet_mass * const.G / (planet_radius)**2  # antatt er konstant (husk å bytte til g for planeten vi befinner oss på)
 rho0 = system.atmospheric_densities[6]
@@ -64,34 +100,55 @@ K1 = k*T0 / (2*mu*g*mh)
 C0 = rho_shift_adiabatic_isoterm*np.exp(1/K1 * r_shift_adiabatic_isoterm)           # Løser for C0 i isoterm likning, gadd ikke analytisk
 
 def get_rho(r):
-    adiabatic = np.where(r <= r_shift_adiabatic_isoterm)
-    isoterm = np.where(r > r_shift_adiabatic_isoterm)
+    if isinstance(r, (int,float)):
+        if r <= r_shift_adiabatic_isoterm:
+            rho = rho_adiabatic(r)
+        else:
+            rho = C0 * np.exp(-1/K1*r)
+        return rho
+    else:
+        adiabatic = np.where(r <= r_shift_adiabatic_isoterm)
+        isoterm = np.where(r > r_shift_adiabatic_isoterm)
 
-    adiabatic_rho = rho_adiabatic(r[adiabatic])
-    isoterm_rho = C0 * np.exp(-1/K1*r[isoterm])
+        adiabatic_rho = rho_adiabatic(r[adiabatic])
+        isoterm_rho = C0 * np.exp(-1/K1*r[isoterm])
 
-    rho = np.concatenate((adiabatic_rho, isoterm_rho))
-    return rho
+        rho = np.concatenate((adiabatic_rho, isoterm_rho))
+        return rho
 
 def get_T(r):
-    adiabatic = np.where(r <= r_shift_adiabatic_isoterm)
-    isoterm = np.where(r > r_shift_adiabatic_isoterm)
+    if isinstance(r, (int,float)):
+        if r <= r_shift_adiabatic_isoterm:
+            temp = T_adiabatic(r)
+        else:
+            temp = T0 / 2
+        return temp
+    else:
+        adiabatic = np.where(r <= r_shift_adiabatic_isoterm)
+        isoterm = np.where(r > r_shift_adiabatic_isoterm)
 
-    adiabatic_temp = T_adiabatic(r[adiabatic])
-    isoterm_temp = T0 / 2 * np.ones_like(r[isoterm])
+        adiabatic_temp = T_adiabatic(r[adiabatic])
+        isoterm_temp = T0 / 2 * np.ones_like(r[isoterm])
 
-    temp = np.concatenate((adiabatic_temp, isoterm_temp))
-    return temp
+        temp = np.concatenate((adiabatic_temp, isoterm_temp))
+        return temp
 
 def get_P(r):
-    adiabatic = np.where(r <= r_shift_adiabatic_isoterm)
-    isoterm = np.where(r > r_shift_adiabatic_isoterm)
+    if isinstance(r, (int,float)):
+        if r <= r_shift_adiabatic_isoterm:
+            P = P_adiabatic(r)
+        else:
+            P = K1*g*get_rho(r)
+        return P
+    else:
+        adiabatic = np.where(r <= r_shift_adiabatic_isoterm)
+        isoterm = np.where(r > r_shift_adiabatic_isoterm)
 
-    adiabatic_P = P_adiabatic(r[adiabatic])
-    isoterm_P = K1*g*get_rho(r[isoterm])
+        adiabatic_P = P_adiabatic(r[adiabatic])
+        isoterm_P = K1*g*get_rho(r[isoterm])
 
-    P = temp = np.concatenate((adiabatic_P, isoterm_P))
-    return P
+        P = temp = np.concatenate((adiabatic_P, isoterm_P))
+        return P
 
 if __name__ == '__main__':
     # printer konstanter for å ha kontroll på størrelsene
@@ -113,7 +170,7 @@ if __name__ == '__main__':
     print(f'P_shift_adiabatic_isoterm [Pa]: {P_shift_adiabatic_isoterm}')
 
     # Plotter alle sammen
-    r = np.linspace(0, 100000, 10000)
+    r = np.linspace(0, int(6e5), int(1e5))
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True)
     ax1.plot(r, get_rho(r), color='r', label=r'$\rho\;[kg/m^3]$')
     ax2.plot(r, get_T(r), color='tab:orange', label='T [K]')
