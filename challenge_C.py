@@ -8,6 +8,7 @@ from ast2000tools.shortcuts import SpaceMissionShortcuts
 import scipy.constants as scs
 from numba import njit
 import itertools
+from tqdm import trange
 
 """
 EGEN KODE: Anton Brekke
@@ -48,21 +49,27 @@ print(f'm_n2o: {m_n2o}')
 print('\n')
 
 mass_array = np.array([m_o2, m_h2o, m_co2, m_ch4, m_co, m_n2o])
-def minimize_mu(mass_array):
+def optimize_mu(mass_array, option='minimize'):
+    if option == 'minimize':
+        opt = lambda x: np.min(x)
+    if option == 'maximize':
+        opt = lambda x: np.max(x)
     combinations_mass = np.array([*itertools.combinations_with_replacement(mass_array, mass_array.size)])
+    # print(combinations_mass)
     N, M = combinations_mass.shape
     mu_comb = np.zeros((N))
-    for i in range(len(mu_comb.flat)):
-        mu_comb.flat[i] = np.sum(combinations_mass.flat[i]) / (M*mh)
-    where_min = np.where(mu_comb==np.min(mu_comb))
+    for i in trange(len(mu_comb), desc='Calculating mu'):
+        mu_comb[i] = np.sum(combinations_mass[i]) / (M*mh)
+    print('')
+    where_min = np.where(mu_comb == opt(mu_comb))
     print(f'Total combinations: {len(mu_comb)}')
     # print(where_min)
     # print(mu_comb[where_min])
     # print(combinations_mass[where_min])
     return combinations_mass[where_min], mu_comb[where_min]
-mass_comb, min_mu = minimize_mu(mass_array)
+mass_comb, min_mu = optimize_mu(mass_array, 'minimize')
 
-n = 15
+n = 0
 print(f'Amount of combinations to choose: {len(min_mu)}\n')
 print(mass_comb[n])         # Kombinasjon av masse
 mu = min_mu[n]            # Komposisjon av atmosfære
@@ -170,7 +177,7 @@ if __name__ == '__main__':
     print(f'P_shift_adiabatic_isoterm [Pa]: {P_shift_adiabatic_isoterm}')
 
     # Plotter alle sammen
-    r = np.linspace(0, int(6e5), int(1e5))
+    r = np.linspace(0, int(1e5), int(1e5))
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True)
     ax1.plot(r, get_rho(r), color='r', label=r'$\rho\;[kg/m^3]$')
     ax2.plot(r, get_T(r), color='tab:orange', label='T [K]')
