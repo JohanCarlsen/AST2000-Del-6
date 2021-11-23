@@ -74,7 +74,7 @@ print(f'Amount of combinations to choose: {len(min_mu)}\n')
 print(mass_comb[n])         # Kombinasjon av masse
 mu = min_mu[n]            # Komposisjon av atmosfære
 r_dist = 3.64 * const.AU            # Middel-avstand
-g = planet_mass * const.G / (planet_radius)**2  # antatt er konstant (husk å bytte til g for planeten vi befinner oss på)
+g = planet_mass * const.G / (planet_radius + 100000)**2  # antatt er konstant (husk å bytte til g for planeten vi befinner oss på)
 rho0 = system.atmospheric_densities[6]
 T0 = surface_T(R_star, T_star, r_dist)
 

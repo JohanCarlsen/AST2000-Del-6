@@ -77,13 +77,15 @@ Kan slice hvert hundrede, data[]
 lambda_data = np.load('lambda_data.npy')
 sigma_noise = np.load('sigma_noise.npy')
 F_data = np.load('F_data.npy')
+print(f'smallest sigma noise:{np.min(sigma_noise)}')
 
 c = const.c
 k = const.k_B
-lambda0 = 2870     # nm
-m = 8*(scs.m_p + scs.m_n) + 2*7*(scs.m_p + scs.m_n)
+lambda0 = 820     # nm
+m = 8*(scs.m_p + scs.m_n) + 2*scs.m_p
 T = 300             # K
 v_rel = 10000           # m/s
+print(v_rel / c)
 
 d_lambda = v_rel / c * lambda0      # nm
 print(d_lambda)
@@ -103,12 +105,14 @@ def F(lambda_data, lambda0, sigma, Fmin):
 
 index_obs = np.logical_and(lambda_data >= lambda0 - d_lambda, lambda_data <= lambda0 + d_lambda)
 plt.plot(lambda_data[index_obs], F_data[index_obs])
-plt.plot(lambda_data[index_obs], F(lambda_data[index_obs], lambda0, sigma, 0.7))
+# plt.plot(lambda_data[index_obs], F(lambda_data[index_obs], lambda0, sigma, 0.7))
+plt.xlabel(r'$\lambda$', weight='bold', fontsize=16)
+plt.ylabel('F', weight='bold', fontsize=16)
 plt.show()
 
 
-n = 4
-lambda_obs = 2870.09
+n = 3
+lambda_obs = 820.017
 print(lambda_obs)
 print(lambda_obs - n*sigma)
 print(lambda_obs + n*sigma)
@@ -121,6 +125,7 @@ index = np.logical_and(lambda_data <= lambda_obs + n*sigma, lambda_data >= lambd
 def X_squared(F_data, sigma_noise, lambda0, lambda_data, indexx):
     sigma_noisel = sigma_noise.copy()[indexx]
     F_datal = F_data.copy()[indexx]
+    sigma_search = np.linspace(0, 3*sigma, len(F_datal))
     lambda_datal = lambda_data.copy()[indexx]
     lambda0l = np.linspace(lambda0 - n*sigma, lambda0 + n*sigma, len(F_datal))
     Fminl = np.linspace(0, 0.7, len(F_datal))
@@ -130,14 +135,15 @@ def X_squared(F_data, sigma_noise, lambda0, lambda_data, indexx):
         for j in range(len(F_datal)):
             for k in range(len(F_datal)):
                 # print(F(lambda_datal, lambda0l[i], sigma_noisel[j], Fminl[k]))
-                X[i,j,k] = np.sum(((F_datal - F(lambda_datal, lambda0l[i], sigma_noisel[j], Fminl[k])) / sigma_noisel)**2)
+                X[i,j,k] = np.sum(((F_datal - F(lambda_datal, lambda0l[i], sigma_search[j], Fminl[k])) / sigma_noisel)**2)
     min = np.min(X)
+    print(min)
     where = np.where(X==min)
     print(where)
     i, j, k = where
     # print(where[0][50:100])
     # print(min, where, X[where])
-    return lambda0l[i], sigma_noisel[j], Fminl[k], min, i, j, k
+    return lambda0l[i], sigma_search[j], Fminl[k], min, i, j, k
 
 
 lambda0, sigmaj, Fmin, min, i, j, k = X_squared(F_data, sigma_noise, lambda0, lambda_data, index)
@@ -154,7 +160,7 @@ print(lambda0, sigmaj, Fmin, min, (i,j,k))
 #     plt.pause(0.1)
 #     ax.cla(); ax2.cla()
 
-index = np.logical_and(lambda_data >= lambda0 - d_lambda - 10*sigma, lambda_data <= lambda0 + d_lambda + 10*sigma)
+index = np.logical_and(lambda_data >= lambda0 - 100, lambda_data <= lambda0 + 100)
 # plt.plot(lambda_data[index], F_data[index], color='tab:orange')
 plt.plot(lambda_data[index], F_data[index], color='tab:blue')
 plt.plot(lambda_data[index], F(lambda_data[index], lambda0, sigmaj, Fmin), linewidth=2, color='r')
