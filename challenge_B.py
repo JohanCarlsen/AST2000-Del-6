@@ -1,5 +1,5 @@
 '''
-SNARVEI OG EGEN KODE
+Egen kode: Anton Brekke
 '''
 
 import numpy as np
@@ -17,44 +17,6 @@ system = SolarSystem(seed)
 mission = SpaceMission.load('mission_after_launch.pickle')
 print('Look, I am still in space:', mission.rocket_launched)
 
-'''Shortcut begin'''
-
-# code_stable_orbit = 95927
-# code_orientation = 43160
-# system = SolarSystem(seed)
-#
-# shortcut = SpaceMissionShortcuts(mission, [code_stable_orbit, code_orientation])
-#
-# # Orientation software shortcut
-# pos, vel, angle = shortcut.get_orientation_data()
-# print("Position after launch:", pos)
-# print("Velocity after launch:", vel)
-#
-# #Verifying orientation with shortcut data
-# mission.verify_manual_orientation(pos, vel, angle)
-#
-# # Initialize interplanetary travel instance
-# travel = mission.begin_interplanetary_travel()
-#
-# # Shortcut to make the landing sequence class start with a stable orbit
-# shortcut.place_spacecraft_in_stable_orbit(0, 1000e3, 0, 1)
-#
-# # Initializing landing sequence class instance
-# landing = mission.begin_landing_sequence()
-#
-# # Calling landing sequece oreint function
-# t, pos, vel = landing.orient()
-#
-# print("We are at:")
-# print("Time :", t)
-# print("pos :", pos)
-# print("vel :", vel)
-
-'''Shortcut end'''
-
-'''
-EGEN KODE
-'''
 """
 Data: [lambda, sigma, fluks]
 
@@ -69,40 +31,38 @@ data[:,2] = spectrum_load[:]
 np.save('data', data)
 """
 
-
-"""
-Kan slice hvert hundrede, data[]
-"""
-
 lambda_data = np.load('lambda_data.npy')
 sigma_noise = np.load('sigma_noise.npy')
 F_data = np.load('F_data.npy')
 print(f'smallest sigma noise:{np.min(sigma_noise)}')
 
-c = const.c
-k = const.k_B
-lambda0 = 820     # nm
+c = const.c     # Lysfart SI
+k = const.k_B       # Boltzmann
+lambda0 = 820     # nm, laboratoriebølgelengde
 m = 8*(scs.m_p + scs.m_n) + 2*scs.m_p
-T = 300             # K
-v_rel = 10000           # m/s
+T = 300             # K, tempertur på gass
+v_rel = 10000           # m/s, fart relativt til planet
 print(v_rel / c)
 
-d_lambda = v_rel / c * lambda0      # nm
+d_lambda = v_rel / c * lambda0      # nm, Dopplerskift
 print(d_lambda)
 # print(d_lamda)
 # print(d_lambda / 2)
 
+# Regner ut standardavviket for profilen med bølgelengde lambda0
 def sigma_calc(lambda0, m, T):
     return 2*lambda0 / c * np.sqrt(k*T / (4*m))
 
 sigma = sigma_calc(lambda0, m, T)
 print(sigma)
 
+# Modell for fluksen, F(lambda)
 @njit
 def F(lambda_data, lambda0, sigma, Fmin):
     f = 1 + (Fmin - 1)*np.exp(-0.5*((lambda_data - lambda0) / sigma)**2)
     return f
 
+# Indeks i intervall vi ønkser å se på
 index_obs = np.logical_and(lambda_data >= lambda0 - d_lambda, lambda_data <= lambda0 + d_lambda)
 plt.plot(lambda_data[index_obs], F_data[index_obs])
 # plt.plot(lambda_data[index_obs], F(lambda_data[index_obs], lambda0, sigma, 0.7))
@@ -112,15 +72,14 @@ plt.show()
 
 
 n = 3
-lambda_obs = 820.017
+lambda_obs = 820.017        # Observert i datakurver
 print(lambda_obs)
 print(lambda_obs - n*sigma)
 print(lambda_obs + n*sigma)
+# Indeks rundt observert bølgelende vi er interessert i
 index = np.logical_and(lambda_data <= lambda_obs + n*sigma, lambda_data >= lambda_obs - n*sigma)
-# plt.plot(lambda_data[index], F_data[index], color='tab:orange')
-# plt.plot(lambda_data[index], F(lambda_data[index], lambda0, sigma, 0.7), color='tab:blue')
-# plt.plot(lambda_data[index], (F_data[index] - F(lambda_data[index], lambda0, sigma, 0.7))**2)
 
+# Implementerer X^2-metoden som skal minimere parametere
 @njit
 def X_squared(F_data, sigma_noise, lambda0, lambda_data, indexx):
     sigma_noisel = sigma_noise.copy()[indexx]
@@ -141,25 +100,13 @@ def X_squared(F_data, sigma_noise, lambda0, lambda_data, indexx):
     where = np.where(X==min)
     print(where)
     i, j, k = where
-    # print(where[0][50:100])
-    # print(min, where, X[where])
     return lambda0l[i], sigma_search[j], Fminl[k], min, i, j, k
 
 
 lambda0, sigmaj, Fmin, min, i, j, k = X_squared(F_data, sigma_noise, lambda0, lambda_data, index)
 print(lambda0, sigmaj, Fmin, min, (i,j,k))
-# fig = plt.figure()
-# ax = fig.add_subplot(1,2,1, projection='3d')
-# ax2 = fig.add_subplot(1,2,2)
-# I = np.linspace(0, len(Fmin)-1, len(Fmin))
-# rx, ry = np.meshgrid(I, I)
-# for m in range(len(Fmin)):
-#     ax.set_zlim(np.max(X[:,:,:]))
-#     ax.plot_surface(rx, ry, X[:,:,m].T, cmap='jet')
-#     ax2.contourf(rx, ry, X[:,:,m].T, levels=25, cmap='jet')
-#     plt.pause(0.1)
-#     ax.cla(); ax2.cla()
 
+# Prøver å plotte resultater
 index = np.logical_and(lambda_data >= lambda0 - 100, lambda_data <= lambda0 + 100)
 # plt.plot(lambda_data[index], F_data[index], color='tab:orange')
 plt.plot(lambda_data[index], F_data[index], color='tab:blue')
